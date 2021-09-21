@@ -1,0 +1,8 @@
+account_id = "ACCT_ID"
+compatibility_date = "2021-09-21"
+kv_namespaces = [{binding = "KV", id = "KV_ID"}]
+name = "uau-next-gen"
+route = "https://nextgen.uau.li/*"
+type = "webpack"
+webpack_config = "webpack.config.js"
+zone_id = "ZONE_ID"
