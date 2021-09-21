@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UaU: Temporary URL/Text shortener</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@2.0.5/build/pure-min.min.css">
+    <style>
+        #app {
+            max-width: 768px;
+            margin: 0 auto;
+            text-align: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif
+        }
+
+        .input-good {
+            border-color: #198754 !important;
+        }
+
+        .button-success {
+            background: rgb(28, 184, 65);
+        }
+
+        .button-error {
+            background: rgb(202, 60, 60);
+        }
+
+        #hr {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="header">
+            <h1>UaU: Temporary URL/Text shortener </h1>
+            <noscript>
+                <h2>This website requires Javascript. Use the API instead if you don't
+                    want JS.</h2>
+            </noscript>
+        </div>
+        <div id="notice" class="content">
+        </div>
+        <form class="pure-form pure-form-stacked">
+            <fieldset>
+                <input id="url" class="pure-input-1" type="url" placeholder="Input the URL...">
+                <div id="hr">or</div>
+                <textarea id="data" class="pure-input-1" cols="30" rows="10"
+                    placeholder="Input some text..."></textarea>
+                <input id="desiredSlug" class="pure-input-1" placeholder="Customize the slug...">
+                <button id="btn" class="pure-button pure-button-primary" disabled>Gimme Gimme!</button>
+            </fieldset>
+        </form>
+        <p>
+            <a id="result" href="" target="_blank" rel="noopener external nofollow noreferrer"></a>
+        <div id="countdown"></div>
+        </p>
+        <p id="error"></p>
+    </div>
+    <script>
+        const BASE_URL = "https://ng.uau.li"
+        const BASE_API_URL = BASE_URL + "/_"
+        const BTN_COLOR_TIME = 900
+        let globalTiming
+        let selector = ''
+        function timing(second) {
+            const min = Math.floor(second / 60)
+            const sec = second % 60
+            return `${min}:${sec < 10 ? '0' : ''}${sec}`
+        }
+        function setupCountdown(elem, time) {
+            if (globalTiming) {
+                clearInterval(globalTiming)
+            }
+            elem.innerHTML = timing(time)
+            globalTiming = setInterval(() => {
+                time--
+                elem.innerHTML = timing(time)
+                if (time <= 0) {
+                    elem.innerHTML = 'Expired'
+                }
+            }, 1000)
+            setTimeout(() => {
+                clearInterval(globalTiming)
+                globalTiming = undefined
+            }, (time + 1) * 1000)
+        }
+        const domInputUrl = document.querySelector('#url')
+        const domInputTxt = document.querySelector('#data')
+        const domButton = document.querySelector('#btn')
+        const domInputSlug = document.querySelector('#desiredSlug')
+        function checkPageStatus() {
+            if (
+                (domInputUrl.value !== '' && !domInputUrl.validity.typeMismatch) ||
+                domInputTxt.value !== ''
+            ) {
+                domButton.removeAttribute('disabled')
+                if (domInputUrl.value !== '' && !domInputUrl.validity.typeMismatch) {
+                    domInputUrl.classList.add('input-good')
+                    domInputTxt.classList.remove('input-good')
+                    selector = 'link'
+                } else {
+                    domInputTxt.classList.add('input-good')
+                    domInputUrl.classList.remove('input-good')
+                    selector = 'payload'
+                }
+            } else {
+                domInputUrl.classList.remove('input-good')
+                domInputTxt.classList.remove('input-good')
+                selector = ''
+                domButton.setAttribute('disabled', '')
+            }
+        }
+        domInputUrl.addEventListener('input', (e) => {
+            checkPageStatus()
+        })
+        domInputTxt.addEventListener('input', (e) => {
+            checkPageStatus()
+        })
+        domButton.addEventListener('click', async (e) => {
+            e.preventDefault()
+            if (selector !== 'link' && selector !== 'payload') return
+            const validity = 300
+            const post = {
+                type: selector,
+                payload: selector === 'link' ? domInputUrl.value : domInputTxt.value,
+                validity
+            }
+            const ret = document.querySelector('#result')
+            const err = document.querySelector('#error')
+            const push = new URL(document.location)
+            domButton.setAttribute('disabled', '')
+            domButton.value = 'Pending...'
+            const result = await fetch(BASE_API_URL + domInputSlug.value, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(post),
+            })
+                .then(async (x) => {
+                    const t = await x.text()
+                    if (x.status < 400) {
+                        return t
+                    }
+                    throw t
+                })
+                .then((x) => {
+                    domButton.classList.add('button-success')
+                    setTimeout(() => {
+                        domButton.classList.remove('button-success')
+                    }, BTN_COLOR_TIME)
+                    ret.href = BASE_URL + domInputSlug.value
+                    ret.innerHTML = BASE_URL.replace(/^https:\/\//, "") + domInputSlug.value
+                    setupCountdown(document.querySelector('#countdown'), validity)
+                })
+                .catch((e) => {
+                    domButton.classList.add('button-error')
+                    setTimeout(() => {
+                        domButton.classList.remove('button-error')
+                    }, BTN_COLOR_TIME)
+                    err.innerHTML = e
+                })
+            domButton.value = 'OK'
+            domButton.removeAttribute('disabled')
+        })
+    </script>
+    <script>
+        const notice = document.querySelector('#notice')
+        fetch(BASE_API_URL)
+            .then((x) => x.json())
+            .then((x) => {
+                notice.innerHTML = `<p>Short link valid in ${x.maxGuestValidity} seconds</p>` + "<p>Upper/lower case does matter</p>" +
+                    `<p>Level can be at most ${x.maxDefinedPathLevel}</p>`
+            })
+            .catch((e) => {
+                console.warn('Cannot get the settings:', e)
+            })
+
+    </script>
+</body>
+
+</html>

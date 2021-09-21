@@ -1,0 +1,18 @@
+{
+  "name": "@uau/publish-static",
+  "version": "1.0.0",
+  "description": "UAU static page.",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/outloudvi/uau.git",
+    "directory": "publish/static"
+  },
+  "author": "Outvi V <oss+npm@outv.im>",
+  "license": "MIT",
+  "scripts": {
+    "build": "rm -rf dist && mkdir dist && html-minifier -c minify.json src/index.html -o dist/index.html"
+  },
+  "devDependencies": {
+    "html-minifier": "^4.0.0"
+  }
+}

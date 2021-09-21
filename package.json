@@ -17,6 +17,7 @@
   "homepage": "https://github.com/outloudvi/uau#readme",
   "workspaces": [
     "core",
-    "publish/workers"
+    "publish/workers",
+    "publish/static"
   ]
 }
