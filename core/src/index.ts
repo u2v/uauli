@@ -1,17 +1,12 @@
-import { APIPostResponse, APIGetResponse } from './api_interface'
-import {
+import type { APIPostResponse, APIGetResponse } from './api_interface'
+import type {
   DBInterface,
   UauItem,
   UauSiteInstance,
+  UauSitePublicSettings,
   UauSiteSettings,
 } from './interface'
-import {
-  pathIterator,
-  statusedJsonResponse,
-  statusedResponse,
-  toURL,
-  validateUauItem,
-} from './utils'
+import { pathIterator, toURL, validateUauItem } from './utils'
 
 export class Uau implements UauSiteInstance {
   storage: DBInterface
@@ -30,11 +25,28 @@ export class Uau implements UauSiteInstance {
     }
   }
 
+  statusedResponse(
+    status: number,
+    payload?: BodyInit,
+    headers?: HeadersInit
+  ): Response {
+    return new Response(payload, {
+      status,
+      headers: {
+        ...this.getCORSHeaders(),
+        ...headers,
+      },
+    })
+  }
+
+  statusedJsonResponse<T>(status: number, payload: T): Response {
+    return this.statusedResponse(status, JSON.stringify(payload), {
+      'Content-Type': 'application/json',
+    })
+  }
+
   async handleApiRequest(request: Request): Promise<Response> {
     const source = new URL(request.url)
-    if (!source.pathname.startsWith(this.settings.apiPrefix)) {
-      return statusedResponse(400, 'Not implemented yet')
-    }
     const path = source.pathname
       .replace(/\/$/, '')
       .slice(this.settings.apiPrefix.length)
@@ -50,18 +62,18 @@ export class Uau implements UauSiteInstance {
       case 'GET': {
         const item = await this.storage.read(path)
         if (item === null) {
-          return statusedJsonResponse<APIGetResponse>(404, {
+          return this.statusedJsonResponse<APIGetResponse>(404, {
             found: false,
           })
         }
-        return statusedJsonResponse<APIGetResponse>(404, {
+        return this.statusedJsonResponse<APIGetResponse>(404, {
           found: true,
           item,
         })
       }
       case 'PUT': {
         if (path.split('/').length > this.settings.maxDefinedPathLevel + 1) {
-          return statusedJsonResponse<APIPostResponse>(400, {
+          return this.statusedJsonResponse<APIPostResponse>(400, {
             ok: false,
             reason: `Max defined path level is ${
               this.settings.maxDefinedPathLevel
@@ -75,7 +87,7 @@ export class Uau implements UauSiteInstance {
         const rawPayload = await request.json()
         let [ok, item] = validateUauItem(rawPayload)
         if (!ok) {
-          return statusedJsonResponse<APIPostResponse>(400, {
+          return this.statusedJsonResponse<APIPostResponse>(400, {
             ok: false,
             reason: `Invalid item: ${item}`,
           })
@@ -89,7 +101,7 @@ export class Uau implements UauSiteInstance {
             item.validity > this.settings.maxGuestValidity)
         ) {
           if (!this.checkIdentity(request)) {
-            return statusedJsonResponse<APIPostResponse>(403, {
+            return this.statusedJsonResponse<APIPostResponse>(403, {
               ok: false,
               reason: 'Invalid request for guests',
             })
@@ -97,31 +109,31 @@ export class Uau implements UauSiteInstance {
         }
 
         await this.storage.write(path, item)
-        return statusedJsonResponse<APIPostResponse>(200, {
+        return this.statusedJsonResponse<APIPostResponse>(200, {
           ok: true,
         })
       }
       case 'DELETE': {
         const item = await this.storage.read(path)
         if (item === null) {
-          return statusedJsonResponse<APIPostResponse>(404, {
+          return this.statusedJsonResponse<APIPostResponse>(404, {
             ok: false,
             reason: 'The entry to delete does not exist',
           })
         }
         if (!this.checkIdentity(request)) {
-          return statusedJsonResponse<APIPostResponse>(403, {
+          return this.statusedJsonResponse<APIPostResponse>(403, {
             ok: false,
             reason: 'Invalid request for guests',
           })
         }
         await this.storage.delete(path)
-        return statusedJsonResponse<APIPostResponse>(200, {
+        return this.statusedJsonResponse<APIPostResponse>(200, {
           ok: true,
         })
       }
     }
-    return statusedResponse(400, 'Invalid request')
+    return this.statusedResponse(400, 'Invalid request')
   }
   async checkConflict(path: string): Promise<Response | null> {
     for (let pathSlice of pathIterator(
@@ -131,13 +143,13 @@ export class Uau implements UauSiteInstance {
       const result = await this.storage.read(pathSlice)
       if (result === null) continue
       if (path === pathSlice)
-        return statusedJsonResponse<APIPostResponse>(400, {
+        return this.statusedJsonResponse<APIPostResponse>(400, {
           ok: false,
           reason: `Item for this path already exists`,
         })
       if (result.type === 'payload') continue
       if (result.inheritPath)
-        return statusedJsonResponse<APIPostResponse>(400, {
+        return this.statusedJsonResponse<APIPostResponse>(400, {
           ok: false,
           reason: `Conflict with a inherited path on ${pathSlice}`,
         })
@@ -151,35 +163,36 @@ export class Uau implements UauSiteInstance {
     )
   }
 
-  handleCORS(): Response {
+  getCORSHeaders(): HeadersInit {
     const corsSetting = this.settings.allowCors
+    const baseAllowedHeaders = {
+      'Access-Control-Allow-Headers': ['Authentication', 'Content-Type'].join(
+        ', '
+      ),
+      'Access-Control-Allow-Methods': '*',
+    }
     if (corsSetting === true) {
-      return new Response(null, {
-        status: 204,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': '*',
-        },
-      })
+      return {
+        ...baseAllowedHeaders,
+        'Access-Control-Allow-Origin': '*',
+      }
     }
     if (corsSetting === false) {
-      return new Response(null, {
-        status: 403,
-      })
+      return {
+        ...baseAllowedHeaders,
+        'Access-Control-Allow-Origin': '',
+      }
     }
-    return new Response(null, {
-      status: 204,
-      headers: {
-        'Access-Control-Allow-Origin': corsSetting.join(', '),
-        'Access-Control-Allow-Methods': '*',
-      },
-    })
+    return {
+      ...baseAllowedHeaders,
+      'Access-Control-Allow-Origin': corsSetting.join(', '),
+    }
   }
 
   async handleRequest(request: Request): Promise<Response> {
     if (request.method === 'OPTIONS') {
       // CORS
-      return this.handleCORS()
+      return this.statusedResponse(204)
     }
 
     const source = new URL(request.url)
@@ -215,7 +228,7 @@ export class Uau implements UauSiteInstance {
         const origin = new URL(request.url)
         const finalUrl = toURL(result.payload)
         if (finalUrl === null) {
-          return statusedResponse(500, `Bad payload URL: Invalid payload`)
+          return this.statusedResponse(500, `Bad payload URL: Invalid payload`)
         }
         if (result.inheritPath && origin.pathname.startsWith(selector)) {
           finalUrl.pathname += origin.pathname.slice(selector.length)

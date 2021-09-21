@@ -8,23 +8,6 @@ export function toURL(url: string): URL | null {
   }
 }
 
-export function statusedResponse(
-  status: number,
-  payload: BodyInit,
-  headers?: HeadersInit
-): Response {
-  return new Response(payload, {
-    status,
-    headers,
-  })
-}
-
-export function statusedJsonResponse<T>(status: number, payload: T): Response {
-  return statusedResponse(status, JSON.stringify(payload), {
-    'Content-Type': 'application/json',
-  })
-}
-
 export function validateUauItem(p: any): [true, UauItem] | [false, string] {
   // This should be in sync with interface.ts
 
