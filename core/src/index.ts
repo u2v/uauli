@@ -39,9 +39,10 @@ export class Uau implements UauSiteInstance {
       .replace(/\/$/, '')
       .slice(this.settings.apiPrefix.length)
     if (path.length === 0) {
-      return statusedJsonResponse(200, {
-        ok: true,
-        meta: 'Empty',
+      return this.statusedJsonResponse<UauSitePublicSettings>(200, {
+        apiPrefix: this.settings.apiPrefix,
+        maxDefinedPathLevel: this.settings.maxDefinedPathLevel,
+        maxGuestValidity: this.settings.maxGuestValidity,
       })
     }
     switch (request.method) {

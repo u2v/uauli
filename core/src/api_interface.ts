@@ -1,4 +1,4 @@
-import { UauItem } from './interface'
+import type { UauItem } from './interface'
 
 export interface APIGetResponse {
   found: boolean

@@ -32,11 +32,14 @@ export interface UauInstance {
   handleRequest(request: Request): Promise<Response>
 }
 
-export interface UauSiteSettings {
+export interface UauSitePublicSettings {
   apiPrefix: string
   maxDefinedPathLevel: number
-  allowCors: boolean | string[]
   maxGuestValidity: number
+}
+
+export interface UauSiteSettings extends UauSitePublicSettings {
+  allowCors: boolean | string[]
   adminToken: string
 }
 
