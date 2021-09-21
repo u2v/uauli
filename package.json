@@ -1,0 +1,22 @@
+{
+  "name": "@uau/suite",
+  "version": "1.0.0",
+  "description": "UAU is a URL shortener.",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/outloudvi/uau.git"
+  },
+  "keywords": [
+    "url-shortener"
+  ],
+  "author": "Outvi V <oss+npm@outv.im>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/outloudvi/uau/issues"
+  },
+  "homepage": "https://github.com/outloudvi/uau#readme",
+  "workspaces": [
+    "core",
+    "publish/workers"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "rootDir": "src/",
+    "declaration": true,
+    "module": "commonjs",
+    "target": "es2018",
+    "lib": ["es2020", "WebWorker"],
+    "alwaysStrict": true,
+    "strict": true,
+    "composite": true,
+    "preserveConstEnums": true,
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "sourceRoot": "",
+    "esModuleInterop": true
+  },
+  "exclude": ["node_modules/"],
+  "include": ["src"]
+}
