@@ -108,12 +108,20 @@
         const domInputTxt = document.querySelector('#data')
         const domButton = document.querySelector('#btnSubmit')
         const domInputSlug = document.querySelector('#desiredSlug')
+        let domInputGood = false
+        let domSlugGood = false
+        function updateFormValidity() {
+            if (domInputGood && domSlugGood) {
+                domButton.removeAttribute('disabled')
+            } else {
+                domButton.setAttribute('disabled', '')
+            }
+        }
         function checkPageStatus() {
             if (
                 (domInputUrl.value !== '' && !domInputUrl.validity.typeMismatch) ||
                 domInputTxt.value !== ''
             ) {
-                domButton.removeAttribute('disabled')
                 if (domInputUrl.value !== '' && !domInputUrl.validity.typeMismatch) {
                     domInputUrl.classList.add('input-good')
                     domInputTxt.classList.remove('input-good')
@@ -123,12 +131,14 @@
                     domInputUrl.classList.remove('input-good')
                     selector = 'payload'
                 }
+                domInputGood = true
             } else {
                 domInputUrl.classList.remove('input-good')
                 domInputTxt.classList.remove('input-good')
                 selector = ''
-                domButton.setAttribute('disabled', '')
+                domInputGood = false
             }
+            updateFormValidity()
         }
         function rawOrReason(e) {
             try {
@@ -140,17 +150,29 @@
         }
         function updateGenerateUrl(){
             domInputSlug.value = `/${nanoid()}`
+            domSlugGood = true
+            updateFormValidity()
         }
         document.querySelector("#btnGen").addEventListener("click", (e) => {
             e.preventDefault()
             updateGenerateUrl()
         })
         updateGenerateUrl()
-        domInputUrl.addEventListener('input', (e) => {
+        domInputUrl.addEventListener('input', () => {
             checkPageStatus()
         })
-        domInputTxt.addEventListener('input', (e) => {
+        domInputTxt.addEventListener('input', () => {
             checkPageStatus()
+        })
+        domInputSlug.addEventListener('input', () => {
+            if (domInputSlug.value.startsWith("/")) {
+                domInputSlug.classList.add('input-good');
+                domSlugGood = true;
+            } else {
+                domInputSlug.classList.remove('input-good');
+                domSlugGood = false;
+            }
+            updateFormValidity()
         })
         domButton.addEventListener('click', async (e) => {
             e.preventDefault()
@@ -211,7 +233,6 @@
             .catch((e) => {
                 console.warn('Cannot get the settings:', e)
             })
-
     </script>
 </body>
 
