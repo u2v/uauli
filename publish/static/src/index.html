@@ -179,6 +179,7 @@
             if (selector !== 'link' && selector !== 'payload') return
             const validity = 300
             const post = {
+                ...(selector === "payload" ? {contentType: "text/plain"} : {}),
                 type: selector,
                 payload: selector === 'link' ? domInputUrl.value : domInputTxt.value,
                 validity
