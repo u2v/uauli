@@ -199,8 +199,15 @@ export class Uau implements UauSiteInstance {
     const path = source.pathname.replace(/\/$/, '')
 
     // Settings
-    if (path.startsWith(this.settings.apiPrefix)) {
+    if (path.startsWith(this.settings.apiPrefix + '/')) {
       return this.handleApiRequest(request)
+    }
+
+    if (request.method !== 'GET') {
+      return this.statusedJsonResponse<APIPostResponse>(405, {
+        ok: false,
+        reason: 'Invalid path for API',
+      })
     }
 
     for (let pathSlice of pathIterator(
