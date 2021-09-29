@@ -29,6 +29,11 @@
         #hr {
             margin: 10px 0;
         }
+
+        .flexRow {
+            align-items: center;
+            display: flex;
+        }
     </style>
 </head>
 
@@ -49,8 +54,13 @@
                 <div id="hr">or</div>
                 <textarea id="data" class="pure-input-1" cols="30" rows="10"
                     placeholder="Input some text..."></textarea>
-                <input id="desiredSlug" class="pure-input-1" placeholder="Customize the slug...">
-                <button id="btn" class="pure-button pure-button-primary" disabled>Gimme Gimme!</button>
+                <div class="flexRow">
+                    <input id="desiredSlug" class="pure-input-1" placeholder="Customize the slug...">
+                    <div>
+                        <button id="btnGen" style="margin-left: 10px;" class="pure-button">Generate</button>
+                    </div>
+                </div>
+                <button id="btnSubmit" class="pure-button pure-button-primary" disabled>Gimme Gimme!</button>
             </fieldset>
         </form>
         <p>
@@ -63,6 +73,13 @@
         const BASE_URL = "https://ng.uau.li"
         const BASE_API_URL = BASE_URL + "/_"
         const BTN_COLOR_TIME = 900
+    </script>
+    <script type="module">
+        import {customAlphabet} from 'https://esm.sh/nanoid@3.1.28'
+        // https://github.com/CyberAP/nanoid-dictionary/blob/master/src/nolookalikes-safe.js
+        const NANOID_DICT = "6789BCDFGHJKLMNPQRTW"
+        const nanoid = customAlphabet(NANOID_DICT, 5)
+
         let globalTiming
         let selector = ''
         function timing(second) {
@@ -89,7 +106,7 @@
         }
         const domInputUrl = document.querySelector('#url')
         const domInputTxt = document.querySelector('#data')
-        const domButton = document.querySelector('#btn')
+        const domButton = document.querySelector('#btnSubmit')
         const domInputSlug = document.querySelector('#desiredSlug')
         function checkPageStatus() {
             if (
@@ -121,6 +138,14 @@
                 return String(e)
             }
         }
+        function updateGenerateUrl(){
+            domInputSlug.value = `/${nanoid()}`
+        }
+        document.querySelector("#btnGen").addEventListener("click", (e) => {
+            e.preventDefault()
+            updateGenerateUrl()
+        })
+        updateGenerateUrl()
         domInputUrl.addEventListener('input', (e) => {
             checkPageStatus()
         })
@@ -175,7 +200,7 @@
             domButton.removeAttribute('disabled')
         })
     </script>
-    <script>
+    <script type="module">
         const notice = document.querySelector('#notice')
         fetch(BASE_API_URL)
             .then((x) => x.json())
