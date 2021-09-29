@@ -113,6 +113,14 @@
                 domButton.setAttribute('disabled', '')
             }
         }
+        function rawOrReason(e) {
+            try {
+                const v = JSON.parse(e)
+                return v.reason || String(e)
+            } catch (_) {
+                return String(e)
+            }
+        }
         domInputUrl.addEventListener('input', (e) => {
             checkPageStatus()
         })
@@ -161,7 +169,7 @@
                     setTimeout(() => {
                         domButton.classList.remove('button-error')
                     }, BTN_COLOR_TIME)
-                    err.innerHTML = e
+                    err.innerHTML = rawOrReason(e)
                 })
             domButton.value = 'OK'
             domButton.removeAttribute('disabled')
