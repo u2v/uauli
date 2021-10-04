@@ -1,4 +1,4 @@
-import { DBInterface, UauItem } from '@uau/core/src/interface'
+import { DBInterface, UauItem, UauSiteSettings } from '@uau/core/src/interface'
 
 function parseOrNull(v: string | null): any {
   return v === null ? null : JSON.parse(v)
@@ -30,4 +30,10 @@ export class WorkersKVDB implements DBInterface {
   delete(path: string): Promise<void> {
     return this._kv.delete(path)
   }
+}
+
+export interface UauWorkersConfig {
+  uauSettings: UauSiteSettings
+  storage: DBInterface
+  statics: { [key: string]: string }
 }

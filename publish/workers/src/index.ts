@@ -2,7 +2,11 @@ import { Uau } from '@uau/core/src'
 
 import uauConfig from './config'
 
-const uauInstance = new Uau(uauConfig.uauSettings, uauConfig.storage)
+const uauInstance = new Uau(
+  uauConfig.uauSettings,
+  uauConfig.storage,
+  uauConfig.statics
+)
 
 addEventListener('fetch', (event) => {
   try {

@@ -1,10 +1,6 @@
-import type { DBInterface, UauSiteSettings } from '@uau/core/src/interface'
-import { WorkersKVDB } from './interface'
+import { UauWorkersConfig, WorkersKVDB } from './interface'
 
-const _: {
-  uauSettings: UauSiteSettings
-  storage: DBInterface
-} = {
+const _: UauWorkersConfig = {
   uauSettings: {
     apiPrefix: '/_',
     maxDefinedPathLevel: 2,
@@ -13,6 +9,9 @@ const _: {
     adminToken: '5bf3e171-d684-42ac-a2fa-397b59181f24', // can be anything actually
   },
   storage: new WorkersKVDB(KV),
+  statics: {
+    '': 'https://uauli.pages.dev/',
+  },
 }
 
 export default _

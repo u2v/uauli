@@ -11,10 +11,16 @@ import { pathIterator, toURL, validateUauItem } from './utils'
 export class Uau implements UauSiteInstance {
   storage: DBInterface
   settings: UauSiteSettings
+  statics: { [key: string]: string }
 
-  constructor(settings: UauSiteSettings, storage: DBInterface) {
+  constructor(
+    settings: UauSiteSettings,
+    storage: DBInterface,
+    statics: { [key: string]: string } = {}
+  ) {
     this.settings = settings
     this.storage = storage
+    this.statics = statics
     // Post-fix
     {
       let prefix = this.settings.apiPrefix
@@ -197,6 +203,11 @@ export class Uau implements UauSiteInstance {
 
     const source = new URL(request.url)
     const path = source.pathname.replace(/\/$/, '')
+
+    if (this.statics[path]) {
+      const resp = await fetch(this.statics[path])
+      return resp.clone()
+    }
 
     // Settings
     if (path.startsWith(this.settings.apiPrefix + '/')) {
