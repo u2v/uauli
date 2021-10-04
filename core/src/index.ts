@@ -210,7 +210,7 @@ export class Uau implements UauSiteInstance {
     }
 
     // Settings
-    if (path.startsWith(this.settings.apiPrefix + '/')) {
+    if (path.startsWith(this.settings.apiPrefix)) {
       return this.handleApiRequest(request)
     }
 
