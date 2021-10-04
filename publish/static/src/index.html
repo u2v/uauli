@@ -70,12 +70,12 @@
         <p id="error"></p>
     </div>
     <script>
-        const BASE_URL = "https://ng.uau.li"
+        const BASE_URL = "https://uau.li"
         const BASE_API_URL = BASE_URL + "/_"
         const BTN_COLOR_TIME = 900
     </script>
     <script type="module">
-        import {customAlphabet} from 'https://esm.sh/nanoid@3.1.28'
+        import { customAlphabet } from 'https://esm.sh/nanoid@3.1.28'
         // https://github.com/CyberAP/nanoid-dictionary/blob/master/src/nolookalikes-safe.js
         const NANOID_DICT = "6789BCDFGHJKLMNPQRTW"
         const nanoid = customAlphabet(NANOID_DICT, 5)
@@ -148,7 +148,7 @@
                 return String(e)
             }
         }
-        function updateGenerateUrl(){
+        function updateGenerateUrl() {
             domInputSlug.value = `/${nanoid()}`
             domSlugGood = true
             updateFormValidity()
@@ -179,7 +179,7 @@
             if (selector !== 'link' && selector !== 'payload') return
             const validity = 300
             const post = {
-                ...(selector === "payload" ? {contentType: "text/plain"} : {}),
+                ...(selector === "payload" ? { contentType: "text/plain" } : {}),
                 type: selector,
                 payload: selector === 'link' ? domInputUrl.value : domInputTxt.value,
                 validity
