@@ -4,9 +4,10 @@ UAU is an extensive URL shortener.
 
 ### Options for All Uaus
 
-| Option   | Description                                   | Comments         |
-| -------- | --------------------------------------------- | ---------------- |
-| validity | The time (in seconds) before the link expires | 0 = never expire |
+| Option   | Description                                   | Comments           |
+| -------- | --------------------------------------------- | ------------------ |
+| validity | The time (in seconds) before the link expires | 0 = never expire   |
+| override | Override exiting links.                       | Need admin access. |
 
 ### Options per Uau type
 

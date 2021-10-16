@@ -86,11 +86,19 @@ export class Uau implements UauSiteInstance {
             }, while your path level is ${path.split('/').length - 1}`,
           })
         }
-        const ifConflict = await this.checkConflict(path)
+        const rawPayload = await request.json()
+        const override = rawPayload.override === true
+        if (override && !this.checkIdentity(request)) {
+          return this.statusedJsonResponse<APIPostResponse>(403, {
+            ok: false,
+            reason: 'Permission denied for override.',
+          })
+        }
+        const ifConflict = await this.checkConflict(path, override)
         if (ifConflict) {
           return ifConflict
         }
-        const rawPayload = await request.json()
+
         let [ok, item] = validateUauItem(rawPayload)
         if (!ok) {
           return this.statusedJsonResponse<APIPostResponse>(400, {
@@ -141,14 +149,17 @@ export class Uau implements UauSiteInstance {
     }
     return this.statusedResponse(400, 'Invalid request')
   }
-  async checkConflict(path: string): Promise<Response | null> {
+  async checkConflict(
+    path: string,
+    override: boolean
+  ): Promise<Response | null> {
     for (let pathSlice of pathIterator(
       path,
       this.settings.maxDefinedPathLevel
     )) {
       const result = await this.storage.read(pathSlice)
       if (result === null) continue
-      if (path === pathSlice)
+      if (path === pathSlice && !override)
         return this.statusedJsonResponse<APIPostResponse>(400, {
           ok: false,
           reason: `Item for this path already exists`,
@@ -234,8 +245,19 @@ export class Uau implements UauSiteInstance {
       }
     }
 
+    const SPECIAL_MATCH = /^\/[_~]/
+    if (path.match(SPECIAL_MATCH) !== null) {
+      const url = `https://pro.uau.li/${path.replace(SPECIAL_MATCH, '')}`
+      return new Response(url, {
+        headers: {
+          Location: url,
+        },
+        status: 302,
+      })
+    }
+
     // Default
-    return new Response('Not Found', {
+    return new Response(`Not found for ${path}`, {
       status: 404,
     })
   }
