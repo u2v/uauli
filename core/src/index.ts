@@ -6,7 +6,7 @@ import type {
   UauSitePublicSettings,
   UauSiteSettings,
 } from './interface'
-import { pathIterator, toURL, validateUauItem } from './utils'
+import { pathIterator, shimContentType, toURL, validateUauItem } from './utils'
 
 export class Uau implements UauSiteInstance {
   storage: DBInterface
@@ -290,7 +290,7 @@ export class Uau implements UauSiteInstance {
           headers: {
             ...(result.contentType
               ? {
-                  'Content-Type': result.contentType,
+                  'Content-Type': shimContentType(result.contentType),
                 }
               : {}),
           },

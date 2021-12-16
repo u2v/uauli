@@ -59,3 +59,8 @@ export function* pathIterator(
     yield pathSeq.slice(0, i + 1).join('/')
   }
 }
+
+export function shimContentType(type: string): string {
+  if (type !== 'text/plain') return type
+  return type + '; charset=UTF-8'
+}
