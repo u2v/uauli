@@ -60,7 +60,7 @@
                         <button id="btnGen" style="margin-left: 10px;" class="pure-button">Generate</button>
                     </div>
                 </div>
-                <button id="btnSubmit" class="pure-button pure-button-primary" disabled>Gimme Gimme!</button>
+                <button id="btnSubmit" class="pure-button pure-button-primary">Gimme Gimme!</button>
             </fieldset>
         </form>
         <p>
@@ -222,6 +222,7 @@
             domButton.value = 'OK'
             domButton.removeAttribute('disabled')
         })
+        checkPageStatus()
     </script>
     <script type="module">
         const notice = document.querySelector('#notice')
