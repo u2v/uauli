@@ -220,6 +220,17 @@ export class Uau implements UauSiteInstance {
       return resp.clone()
     }
 
+    const SPECIAL_MATCH = /^\/[_~][^/]+/
+    if (path.match(SPECIAL_MATCH) !== null) {
+      const url = `https://pro.uau.li/${path.replace(/^\/[_~]/, '')}`
+      return new Response(url, {
+        headers: {
+          Location: url,
+        },
+        status: 302,
+      })
+    }
+
     // Settings
     if (path.startsWith(this.settings.apiPrefix)) {
       return this.handleApiRequest(request)
@@ -243,17 +254,6 @@ export class Uau implements UauSiteInstance {
       ) {
         return this.buildResponse(request, result, pathSlice)
       }
-    }
-
-    const SPECIAL_MATCH = /^\/[_~]/
-    if (path.match(SPECIAL_MATCH) !== null) {
-      const url = `https://pro.uau.li/${path.replace(SPECIAL_MATCH, '')}`
-      return new Response(url, {
-        headers: {
-          Location: url,
-        },
-        status: 302,
-      })
     }
 
     // Default
@@ -302,4 +302,28 @@ export class Uau implements UauSiteInstance {
       }
     }
   }
+}
+
+async function logRequest(request: Request): Promise<void> {
+  const reqUrl = new URL(request.url)
+
+  await fetch('https://umami.outv.im/api/collect', {
+    method: 'POST',
+    body: JSON.stringify({
+      payload: {
+        website: '28e37073-d7be-4909-9b4f-f36952cf0f0e',
+        url: reqUrl.pathname,
+        referrer: request.headers.get('Referer'),
+        hostname: reqUrl.hostname,
+        language: request.headers.get('Accept-Language') || '',
+      },
+      type: 'pageview',
+    }),
+    // @ts-ignore
+    headers: {
+      'CF-Connecting-IP': request.headers.get('CF-Connecting-IP'),
+      'User-Agent': request.headers.get('User-Agent'),
+      Referer: request.headers.get('Referer'),
+    },
+  })
 }
