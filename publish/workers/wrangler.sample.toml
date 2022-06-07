@@ -1,5 +1,5 @@
 account_id = "ACCT_ID"
-compatibility_date = "2021-09-21"
+compatibility_date = "2022-06-07"
 kv_namespaces = [{binding = "KV", id = "KV_ID"}]
 name = "uau-next-gen"
 route = "https://nextgen.uau.li/*"
