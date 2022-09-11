@@ -56,6 +56,7 @@ export class Uau implements UauSiteInstance {
     const path = source.pathname
       .replace(/\/$/, '')
       .slice(this.settings.apiPrefix.length)
+      .toLowerCase()
     if (path.length === 0) {
       return this.statusedJsonResponse<UauSitePublicSettings>(200, {
         apiPrefix: this.settings.apiPrefix,
@@ -243,14 +244,16 @@ export class Uau implements UauSiteInstance {
       })
     }
 
+    const pathLowercase = path.toLowerCase()
     for (let pathSlice of pathIterator(
-      path,
+      pathLowercase,
       this.settings.maxDefinedPathLevel
     )) {
       const result = await this.storage.read(pathSlice)
       if (
         result !== null &&
-        ((result.type === 'link' && result.inheritPath) || pathSlice === path)
+        ((result.type === 'link' && result.inheritPath) ||
+          pathSlice === pathLowercase)
       ) {
         return this.buildResponse(request, result, pathSlice)
       }

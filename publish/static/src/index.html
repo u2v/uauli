@@ -229,7 +229,7 @@
         fetch(BASE_API_URL)
             .then((x) => x.json())
             .then((x) => {
-                notice.innerHTML = `<p>Short link valid in ${x.maxGuestValidity} seconds</p>` + "<p>Upper/lower case does matter</p>" +
+                notice.innerHTML = `<p>Short link valid in ${x.maxGuestValidity} seconds</p>` + "<p>Upper/lower case doesn't matter</p>" +
                     `<p>Level can be at most ${x.maxDefinedPathLevel}</p>`
             })
             .catch((e) => {
