@@ -1,8 +1,11 @@
 account_id = "ACCT_ID"
 compatibility_date = "2022-06-07"
 kv_namespaces = [{binding = "KV", id = "KV_ID"}]
+main = "dist/worker.production.js"
 name = "uau-next-gen"
 route = "https://nextgen.uau.li/*"
 type = "webpack"
 webpack_config = "webpack.config.js"
-zone_id = "ZONE_ID"
+
+[build]
+command = "npm run build"
