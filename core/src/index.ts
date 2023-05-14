@@ -214,22 +214,11 @@ export class Uau implements UauSiteInstance {
     }
 
     const source = new URL(request.url)
-    const path = source.pathname.replace(/\/$/, '')
+    const path = source.pathname.replace(/\/$/, '').replace(/^\/~/, '/')
 
     if (this.statics[path]) {
       const resp = await fetch(this.statics[path])
       return resp.clone()
-    }
-
-    const SPECIAL_MATCH = /^\/[_~][^/]+/
-    if (path.match(SPECIAL_MATCH) !== null) {
-      const url = `https://pro.uau.li/${path.replace(/^\/[_~]/, '')}`
-      return new Response(url, {
-        headers: {
-          Location: url,
-        },
-        status: 302,
-      })
     }
 
     // Settings
