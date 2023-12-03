@@ -2,7 +2,7 @@
 
 Uau is a temparory/permanent link shortener.
 
-**[Have a try!](https://uau.li)**\*
+**[Have a try!](https://two.li)**\*
 
 \* currently deployed on [Workers](https://workers.cloudflare.com/), [Workers KV](https://developers.cloudflare.com/workers/runtime-apis/kv) & [Pages](https://pages.cloudflare.com/)
 
@@ -18,9 +18,9 @@ Uau is a temparory/permanent link shortener.
 
 Examples:
 
-* GitHub Action docs: [uau.li/gha/docs](https://uau.li/gha/docs)
-* GitHub Action environments: [uau.li/gha/env](https://uau.li/gha/env)
-* GitHub Action script: [uau.li/gha/script](https://uau.li/gha/script)
+* GitHub Action docs: [two.li/gha/docs](https://two.li/gha/docs)
+* GitHub Action environments: [two.li/gha/env](https://two.li/gha/env)
+* GitHub Action script: [two.li/gha/script](https://two.li/gha/script)
 
 ### `inheritPath` - Append the paths after shortened link to the target URL
 
@@ -38,9 +38,9 @@ Result:
 
 | UAU link                                               | Target                                     |
 | ------------------------------------------------------ | ------------------------------------------ |
-| [uau.li/pixiv/15308432](https://uau.li/pixiv/15308432) | https://www.pixiv.net/en/artworks/15308432 |
-| [uau.li/pixiv/93067044](https://uau.li/pixiv/93067044) | https://www.pixiv.net/en/artworks/93067044 |
-| uau.li/pixiv/\<any id\>                                | https://www.pixiv.net/en/artworks/<id\>   |
+| [two.li/pixiv/15308432](https://two.li/pixiv/15308432) | https://www.pixiv.net/en/artworks/15308432 |
+| [two.li/pixiv/93067044](https://two.li/pixiv/93067044) | https://www.pixiv.net/en/artworks/93067044 |
+| two.li/pixiv/\<any id\>                                | https://www.pixiv.net/en/artworks/<id\>    |
 
 ### `inheritParam` - Append the query parameters to the target URL (and preserve the ones in the target URL)
 
@@ -56,11 +56,11 @@ Result:
 
 Result:
 
-| UAU link                                               | Target                                                               |
-| ------------------------------------------------------ | -------------------------------------------------------------------- |
-| [uau.li/1p3a?tid=4428](https://uau.li/1p3a?tid=4428)   | https://www.1point3acres.com/bbs/forum.php?mod=viewthread&tid=4428   |
-| [uau.li/1p3a?tid=71069](https://uau.li/1p3a?tid=71069) | https://www.1point3acres.com/bbs/forum.php?mod=viewthread&tid=71069  |
-| uau.li/1p3a?tid=\<any id\>                             | https://www.1point3acres.com/bbs/forum.php?mod=viewthread&tid=<id\> |
+| UAU link                                               | Target                                                              |
+| ------------------------------------------------------ | ------------------------------------------------------------------- |
+| [two.li/1p3a?tid=4428](https://two.li/1p3a?tid=4428)   | https://www.1point3acres.com/bbs/forum.php?mod=viewthread&tid=4428  |
+| [two.li/1p3a?tid=71069](https://two.li/1p3a?tid=71069) | https://www.1point3acres.com/bbs/forum.php?mod=viewthread&tid=71069 |
+| two.li/1p3a?tid=\<any id\>                             | https://www.1point3acres.com/bbs/forum.php?mod=viewthread&tid=<id\> |
 
 ### Use [any database](/core/src/interface.ts#L24-L28) on your choice
 
