@@ -7,6 +7,12 @@
     <title>UaU: Temporary URL/Text shortener</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@2.0.5/build/pure-min.min.css">
     <style>
+        #sitenotice {
+            background-color: lightblue;
+            text-align: center;
+            padding: 10px;
+        }
+
         #app {
             max-width: 768px;
             margin: 0 auto;
@@ -44,6 +50,9 @@
 </head>
 
 <body>
+    <div id="sitenotice" style="display: none;">
+        Please use the main site <a href="BASE_URL">BASE_URL</a> instead.
+    </div>
     <div id="app">
         <div class="header">
             <h1>UaU: Temporary URL/Text shortener </h1>
@@ -241,6 +250,15 @@
             .catch((e) => {
                 console.warn('Cannot get the settings:', e)
             })
+    </script>
+    <script type="module">
+        if (document.location.origin !== BASE_URL) {
+            const siteNotice = document.querySelector('#sitenotice')
+            siteNotice.style.display = "block"
+            const a = siteNotice.querySelector('a')
+            a.href = BASE_URL
+            a.innerText = BASE_URL
+        }
     </script>
 </body>
 
