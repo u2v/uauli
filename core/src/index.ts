@@ -6,7 +6,14 @@ import type {
   UauSitePublicSettings,
   UauSiteSettings,
 } from './interface'
-import { pathIterator, shimContentType, toURL, validateUauItem } from './utils'
+import {
+  pathIterator,
+  shimContentType,
+  toURL,
+  validateCors,
+  validateUauItem,
+  withCorsHeaders,
+} from './utils'
 
 export class Uau implements UauSiteInstance {
   storage: DBInterface
@@ -38,10 +45,7 @@ export class Uau implements UauSiteInstance {
   ): Response {
     return new Response(payload, {
       status,
-      headers: {
-        ...this.getCORSHeaders(),
-        ...headers,
-      },
+      headers,
     })
   }
 
@@ -181,36 +185,15 @@ export class Uau implements UauSiteInstance {
     )
   }
 
-  getCORSHeaders(): HeadersInit {
-    const corsSetting = this.settings.allowCors
-    const baseAllowedHeaders = {
-      'Access-Control-Allow-Headers': ['Authentication', 'Content-Type'].join(
-        ', '
-      ),
-      'Access-Control-Allow-Methods': '*',
-    }
-    if (corsSetting === true) {
-      return {
-        ...baseAllowedHeaders,
-        'Access-Control-Allow-Origin': '*',
-      }
-    }
-    if (corsSetting === false) {
-      return {
-        ...baseAllowedHeaders,
-        'Access-Control-Allow-Origin': '',
-      }
-    }
-    return {
-      ...baseAllowedHeaders,
-      'Access-Control-Allow-Origin': corsSetting.join(', '),
-    }
-  }
-
   async handleRequest(request: Request): Promise<Response> {
+    const acaoResult = validateCors(
+      request.headers.get('Origin'),
+      this.settings.allowCors
+    )
+
     if (request.method === 'OPTIONS') {
       // CORS
-      return this.statusedResponse(204)
+      return withCorsHeaders(this.statusedResponse(204), acaoResult)
     }
 
     const source = new URL(request.url)
@@ -223,14 +206,17 @@ export class Uau implements UauSiteInstance {
 
     // Settings
     if (path.startsWith(this.settings.apiPrefix)) {
-      return this.handleApiRequest(request)
+      return withCorsHeaders(await this.handleApiRequest(request), acaoResult)
     }
 
     if (request.method !== 'GET') {
-      return this.statusedJsonResponse<APIPostResponse>(405, {
-        ok: false,
-        reason: 'Invalid path for API',
-      })
+      return withCorsHeaders(
+        this.statusedJsonResponse<APIPostResponse>(405, {
+          ok: false,
+          reason: 'Invalid path for API',
+        }),
+        acaoResult
+      )
     }
 
     const pathLowercase = path.toLowerCase()
@@ -244,14 +230,20 @@ export class Uau implements UauSiteInstance {
         ((result.type === 'link' && result.inheritPath) ||
           pathSlice === pathLowercase)
       ) {
-        return this.buildResponse(request, result, pathSlice)
+        return withCorsHeaders(
+          this.buildResponse(request, result, pathSlice),
+          acaoResult
+        )
       }
     }
 
     // Default
-    return new Response(`Not found for ${path}`, {
-      status: 404,
-    })
+    return withCorsHeaders(
+      new Response(`Not found for ${path}`, {
+        status: 404,
+      }),
+      acaoResult
+    )
   }
 
   buildResponse(request: Request, result: UauItem, selector: string): Response {

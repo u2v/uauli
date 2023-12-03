@@ -1,4 +1,4 @@
-import type { UauGlobal, UauItem } from './interface'
+import type { UauGlobal, UauItem, UauSiteSettings } from './interface'
 
 export function toURL(url: string): URL | null {
   try {
@@ -63,4 +63,33 @@ export function* pathIterator(
 export function shimContentType(type: string): string {
   if (type !== 'text/plain') return type
   return type + '; charset=UTF-8'
+}
+
+export function validateCors(
+  origin: string | null,
+  allowCors: UauSiteSettings['allowCors']
+) {
+  if (allowCors === true) {
+    return '*'
+  }
+
+  if (allowCors === false || origin === null) {
+    return ''
+  }
+
+  return allowCors.includes(origin.replace(/^https:\\/, '')) ? origin : ''
+}
+
+export function withCorsHeaders(r: Response, acaoResult: string): Response {
+  for (const [key, value] of Object.entries({
+    'Access-Control-Allow-Headers': ['Authentication', 'Content-Type'].join(
+      ', '
+    ),
+    'Access-Control-Allow-Methods': '*',
+    'Access-Control-Allow-Origin': acaoResult,
+  })) {
+    r.headers.set(key, value)
+  }
+
+  return r
 }
