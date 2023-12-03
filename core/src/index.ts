@@ -9,6 +9,8 @@ import type {
 import {
   pathIterator,
   shimContentType,
+  statusedJsonResponse,
+  statusedResponse,
   toURL,
   validateCors,
   validateUauItem,
@@ -38,23 +40,6 @@ export class Uau implements UauSiteInstance {
     }
   }
 
-  statusedResponse(
-    status: number,
-    payload?: BodyInit,
-    headers?: HeadersInit
-  ): Response {
-    return new Response(payload, {
-      status,
-      headers,
-    })
-  }
-
-  statusedJsonResponse<T>(status: number, payload: T): Response {
-    return this.statusedResponse(status, JSON.stringify(payload), {
-      'Content-Type': 'application/json',
-    })
-  }
-
   async handleApiRequest(request: Request): Promise<Response> {
     const source = new URL(request.url)
     const path = source.pathname
@@ -62,7 +47,7 @@ export class Uau implements UauSiteInstance {
       .slice(this.settings.apiPrefix.length)
       .toLowerCase()
     if (path.length === 0) {
-      return this.statusedJsonResponse<UauSitePublicSettings>(200, {
+      return statusedJsonResponse<UauSitePublicSettings>(200, {
         apiPrefix: this.settings.apiPrefix,
         maxDefinedPathLevel: this.settings.maxDefinedPathLevel,
         maxGuestValidity: this.settings.maxGuestValidity,
@@ -73,18 +58,18 @@ export class Uau implements UauSiteInstance {
       case 'GET': {
         const item = await this.storage.read(path)
         if (item === null) {
-          return this.statusedJsonResponse<APIGetResponse>(404, {
+          return statusedJsonResponse<APIGetResponse>(404, {
             found: false,
           })
         }
-        return this.statusedJsonResponse<APIGetResponse>(404, {
+        return statusedJsonResponse<APIGetResponse>(404, {
           found: true,
           item,
         })
       }
       case 'PUT': {
         if (path.split('/').length > this.settings.maxDefinedPathLevel + 1) {
-          return this.statusedJsonResponse<APIPostResponse>(400, {
+          return statusedJsonResponse<APIPostResponse>(400, {
             ok: false,
             reason: `Max defined path level is ${
               this.settings.maxDefinedPathLevel
@@ -94,7 +79,7 @@ export class Uau implements UauSiteInstance {
         const rawPayload = await request.json()
         const override = rawPayload.override === true
         if (override && !this.checkIdentity(request)) {
-          return this.statusedJsonResponse<APIPostResponse>(403, {
+          return statusedJsonResponse<APIPostResponse>(403, {
             ok: false,
             reason: 'Permission denied for override.',
           })
@@ -106,7 +91,7 @@ export class Uau implements UauSiteInstance {
 
         let [ok, item] = validateUauItem(rawPayload)
         if (!ok) {
-          return this.statusedJsonResponse<APIPostResponse>(400, {
+          return statusedJsonResponse<APIPostResponse>(400, {
             ok: false,
             reason: `Invalid item: ${item}`,
           })
@@ -120,7 +105,7 @@ export class Uau implements UauSiteInstance {
             item.validity > this.settings.maxGuestValidity)
         ) {
           if (!this.checkIdentity(request)) {
-            return this.statusedJsonResponse<APIPostResponse>(403, {
+            return statusedJsonResponse<APIPostResponse>(403, {
               ok: false,
               reason: 'Invalid request for guests',
             })
@@ -128,31 +113,31 @@ export class Uau implements UauSiteInstance {
         }
 
         await this.storage.write(path, item)
-        return this.statusedJsonResponse<APIPostResponse>(200, {
+        return statusedJsonResponse<APIPostResponse>(200, {
           ok: true,
         })
       }
       case 'DELETE': {
         const item = await this.storage.read(path)
         if (item === null) {
-          return this.statusedJsonResponse<APIPostResponse>(404, {
+          return statusedJsonResponse<APIPostResponse>(404, {
             ok: false,
             reason: 'The entry to delete does not exist',
           })
         }
         if (!this.checkIdentity(request)) {
-          return this.statusedJsonResponse<APIPostResponse>(403, {
+          return statusedJsonResponse<APIPostResponse>(403, {
             ok: false,
             reason: 'Invalid request for guests',
           })
         }
         await this.storage.delete(path)
-        return this.statusedJsonResponse<APIPostResponse>(200, {
+        return statusedJsonResponse<APIPostResponse>(200, {
           ok: true,
         })
       }
     }
-    return this.statusedResponse(400, 'Invalid request')
+    return statusedResponse(400, 'Invalid request')
   }
   async checkConflict(
     path: string,
@@ -165,13 +150,13 @@ export class Uau implements UauSiteInstance {
       const result = await this.storage.read(pathSlice)
       if (result === null) continue
       if (path === pathSlice && !override)
-        return this.statusedJsonResponse<APIPostResponse>(400, {
+        return statusedJsonResponse<APIPostResponse>(400, {
           ok: false,
           reason: `Item for this path already exists`,
         })
       if (result.type === 'payload') continue
       if (result.inheritPath)
-        return this.statusedJsonResponse<APIPostResponse>(400, {
+        return statusedJsonResponse<APIPostResponse>(400, {
           ok: false,
           reason: `Conflict with a inherited path on ${pathSlice}`,
         })
@@ -193,7 +178,7 @@ export class Uau implements UauSiteInstance {
 
     if (request.method === 'OPTIONS') {
       // CORS
-      return withCorsHeaders(this.statusedResponse(204), acaoResult)
+      return withCorsHeaders(statusedResponse(204), acaoResult)
     }
 
     const source = new URL(request.url)
@@ -211,7 +196,7 @@ export class Uau implements UauSiteInstance {
 
     if (request.method !== 'GET') {
       return withCorsHeaders(
-        this.statusedJsonResponse<APIPostResponse>(405, {
+        statusedJsonResponse<APIPostResponse>(405, {
           ok: false,
           reason: 'Invalid path for API',
         }),
@@ -252,7 +237,7 @@ export class Uau implements UauSiteInstance {
         const origin = new URL(request.url)
         const finalUrl = toURL(result.payload)
         if (finalUrl === null) {
-          return this.statusedResponse(500, `Bad payload URL: Invalid payload`)
+          return statusedResponse(500, `Bad payload URL: Invalid payload`)
         }
         if (result.inheritPath && origin.pathname.startsWith(selector)) {
           finalUrl.pathname += origin.pathname.slice(selector.length)

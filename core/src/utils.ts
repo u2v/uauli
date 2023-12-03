@@ -77,7 +77,7 @@ export function validateCors(
     return ''
   }
 
-  return allowCors.includes(origin.replace(/^https:\\/, '')) ? origin : ''
+  return allowCors.includes(origin.replace(/^https:\/\//, '')) ? origin : ''
 }
 
 export function withCorsHeaders(r: Response, acaoResult: string): Response {
@@ -92,4 +92,21 @@ export function withCorsHeaders(r: Response, acaoResult: string): Response {
   }
 
   return r
+}
+
+export function statusedResponse(
+  status: number,
+  payload?: BodyInit,
+  headers?: HeadersInit
+): Response {
+  return new Response(payload, {
+    status,
+    headers,
+  })
+}
+
+export function statusedJsonResponse<T>(status: number, payload: T): Response {
+  return statusedResponse(status, JSON.stringify(payload), {
+    'Content-Type': 'application/json',
+  })
 }
