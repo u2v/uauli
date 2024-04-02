@@ -4,7 +4,6 @@ kv_namespaces = [{binding = "KV", id = "KV_ID"}]
 main = "dist/worker.production.js"
 name = "uau-next-gen"
 routes = [
-  {pattern = "uau.li", custom_domain = true},
   {pattern = "two.li", custom_domain = true},
 ]
 type = "webpack"
@@ -12,3 +11,6 @@ webpack_config = "webpack.config.js"
 
 [build]
 command = "npm run build"
+
+[placement]
+mode = "smart"
