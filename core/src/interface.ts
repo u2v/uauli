@@ -41,8 +41,14 @@ export interface UauSitePublicSettings {
 export interface UauSiteSettings extends UauSitePublicSettings {
   allowCors: boolean | string[]
   adminToken: string
+  umamiConfig?: UmamiConfig
 }
 
 export interface UauSiteInstance extends UauInstance {
   settings: UauSiteSettings
+}
+
+export interface UmamiConfig {
+  domain: string
+  websiteId: string
 }

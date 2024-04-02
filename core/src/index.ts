@@ -5,6 +5,7 @@ import type {
   UauSiteInstance,
   UauSitePublicSettings,
   UauSiteSettings,
+  UmamiConfig,
 } from './interface'
 import {
   pathIterator,
@@ -194,6 +195,10 @@ export class Uau implements UauSiteInstance {
       return withCorsHeaders(await this.handleApiRequest(request), acaoResult)
     }
 
+    if (this.settings.umamiConfig) {
+      logRequest(request, this.settings.umamiConfig)
+    }
+
     if (request.method !== 'GET') {
       return withCorsHeaders(
         statusedJsonResponse<APIPostResponse>(405, {
@@ -273,26 +278,26 @@ export class Uau implements UauSiteInstance {
   }
 }
 
-async function logRequest(request: Request): Promise<void> {
-  const reqUrl = new URL(request.url)
+async function logRequest(req: Request, config: UmamiConfig): Promise<void> {
+  const url = new URL(req.url)
 
-  await fetch('https://umami.outv.im/api/collect', {
-    method: 'POST',
+  await fetch(`https://${config.domain}/api/send`, {
     body: JSON.stringify({
       payload: {
-        website: '28e37073-d7be-4909-9b4f-f36952cf0f0e',
-        url: reqUrl.pathname,
-        referrer: request.headers.get('Referer'),
-        hostname: reqUrl.hostname,
-        language: request.headers.get('Accept-Language') || '',
+        website: config.websiteId,
+        url: url.pathname + url.search,
+        referrer: req.headers.get('Referer'),
+        hostname: url.hostname,
+        language: req.headers.get('Accept-Language'),
+        screen: '1920x1080',
       },
-      type: 'pageview',
+      type: 'event',
     }),
-    // @ts-ignore
     headers: {
-      'CF-Connecting-IP': request.headers.get('CF-Connecting-IP'),
-      'User-Agent': request.headers.get('User-Agent'),
-      Referer: request.headers.get('Referer'),
+      'User-Agent': req.headers.get('User-Agent') ?? '',
+      'Content-Type': 'application/json',
+      'X-Forwarded-For': String(req.headers.get('CF-Connecting-IP')),
     },
-  })
+    method: 'POST',
+  }).then((x) => x.text())
 }
