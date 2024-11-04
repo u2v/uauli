@@ -183,8 +183,8 @@
                     setTimeout(() => {
                         domButton.classList.remove('button-success')
                     }, BTN_COLOR_TIME)
-                    ret.href = BASE_URL + x.path
-                    ret.innerHTML = BASE_URL.replace(/^https:\/\//, "") + x.path
+                    ret.href = BASE_URL + x.path.toUpperCase()
+                    ret.innerHTML = BASE_URL.replace(/^https:\/\//, "") + x.path.toUpperCase()
                     setupCountdown(document.querySelector('#countdown'), validity)
                 })
                 .catch((e) => {
