@@ -335,7 +335,7 @@ async function logRequest(req: Request, config: UmamiConfig): Promise<void> {
       type: 'event',
     }),
     headers: {
-      'User-Agent': req.headers.get('User-Agent') ?? '',
+      'User-Agent': req.headers.get('User-Agent') ?? 'UauLi/1.0',
       'Content-Type': 'application/json',
       'X-Forwarded-For': String(req.headers.get('CF-Connecting-IP')),
     },
