@@ -113,9 +113,8 @@
         const domInputTxt = document.querySelector('#data')
         const domButton = document.querySelector('#btnSubmit')
         let domInputGood = false
-        let domSlugGood = false
         function updateFormValidity() {
-            if (domInputGood && domSlugGood) {
+            if (domInputGood) {
                 domButton.removeAttribute('disabled')
             } else {
                 domButton.setAttribute('disabled', '')
