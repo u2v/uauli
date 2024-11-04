@@ -15,5 +15,8 @@
   "devDependencies": {
     "@types/express": "^4.17.17",
     "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "nanoid": "^5.0.8"
   }
 }

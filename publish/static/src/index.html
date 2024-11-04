@@ -69,17 +69,12 @@
                 <div id="hr">or</div>
                 <textarea id="data" class="pure-input-1" cols="30" rows="10"
                     placeholder="Input some text..."></textarea>
-                <div class="flexRow">
-                    <input id="desiredSlug" class="pure-input-1" placeholder="Customize the slug...">
-                    <div>
-                        <button id="btnGen" style="margin-left: 10px;" class="pure-button">Generate</button>
-                    </div>
-                </div>
-                <button id="btnSubmit" class="pure-button pure-button-primary">Gimme Gimme!</button>
+                <button type="button" id="btnSubmit" class="pure-button pure-button-primary">Gimme Gimme!</button>
             </fieldset>
         </form>
         <p>
-            <a id="result" href="" target="_blank" rel="noopener external nofollow noreferrer"></a>
+            <a id="result" href="" target="_blank" rel="noopener external nofollow noreferrer"
+                title="short url result"></a>
         <div id="countdown"></div>
         </p>
         <p id="error"></p>
@@ -90,11 +85,6 @@
         const BTN_COLOR_TIME = 900
     </script>
     <script type="module">
-        import { customAlphabet } from 'https://esm.sh/nanoid@3.1.28'
-        // https://github.com/CyberAP/nanoid-dictionary/blob/master/src/nolookalikes-safe.js
-        const NANOID_DICT = "6789BCDFGHJKLMNPQRTW"
-        const nanoid = customAlphabet(NANOID_DICT, 5)
-
         let globalTiming
         let selector = ''
         function timing(second) {
@@ -122,7 +112,6 @@
         const domInputUrl = document.querySelector('#url')
         const domInputTxt = document.querySelector('#data')
         const domButton = document.querySelector('#btnSubmit')
-        const domInputSlug = document.querySelector('#desiredSlug')
         let domInputGood = false
         let domSlugGood = false
         function updateFormValidity() {
@@ -155,39 +144,11 @@
             }
             updateFormValidity()
         }
-        function rawOrReason(e) {
-            try {
-                const v = JSON.parse(e)
-                return v.reason || String(e)
-            } catch (_) {
-                return String(e)
-            }
-        }
-        function updateGenerateUrl() {
-            domInputSlug.value = `/${nanoid()}`
-            domSlugGood = true
-            updateFormValidity()
-        }
-        document.querySelector("#btnGen").addEventListener("click", (e) => {
-            e.preventDefault()
-            updateGenerateUrl()
-        })
-        updateGenerateUrl()
         domInputUrl.addEventListener('input', () => {
             checkPageStatus()
         })
         domInputTxt.addEventListener('input', () => {
             checkPageStatus()
-        })
-        domInputSlug.addEventListener('input', () => {
-            if (domInputSlug.value.startsWith("/")) {
-                domInputSlug.classList.add('input-good');
-                domSlugGood = true;
-            } else {
-                domInputSlug.classList.remove('input-good');
-                domSlugGood = false;
-            }
-            updateFormValidity()
         })
         domButton.addEventListener('click', async (e) => {
             e.preventDefault()
@@ -204,7 +165,7 @@
             const push = new URL(document.location)
             domButton.setAttribute('disabled', '')
             domButton.value = 'Pending...'
-            const result = await fetch(BASE_API_URL + domInputSlug.value, {
+            const result = await fetch(BASE_API_URL, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -212,7 +173,7 @@
                 body: JSON.stringify(post),
             })
                 .then(async (x) => {
-                    const t = await x.text()
+                    const t = await x.json()
                     if (x.status < 400) {
                         return t
                     }
@@ -223,8 +184,8 @@
                     setTimeout(() => {
                         domButton.classList.remove('button-success')
                     }, BTN_COLOR_TIME)
-                    ret.href = BASE_URL + domInputSlug.value
-                    ret.innerHTML = BASE_URL.replace(/^https:\/\//, "") + domInputSlug.value
+                    ret.href = BASE_URL + x.path
+                    ret.innerHTML = BASE_URL.replace(/^https:\/\//, "") + x.path
                     setupCountdown(document.querySelector('#countdown'), validity)
                 })
                 .catch((e) => {
@@ -232,7 +193,7 @@
                     setTimeout(() => {
                         domButton.classList.remove('button-error')
                     }, BTN_COLOR_TIME)
-                    err.innerHTML = rawOrReason(e)
+                    err.innerHTML = e.reason || String(e)
                 })
             domButton.value = 'OK'
             domButton.removeAttribute('disabled')

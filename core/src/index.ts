@@ -1,3 +1,4 @@
+import { customAlphabet } from 'nanoid'
 import type { APIPostResponse, APIGetResponse } from './api_interface'
 import type {
   DBInterface,
@@ -17,6 +18,9 @@ import {
   validateUauItem,
   withCorsHeaders,
 } from './utils'
+
+const NANOID_DICT = '6789BCDFGHJKLMNPQRTW'
+const nanoid = customAlphabet(NANOID_DICT, 5)
 
 export class Uau implements UauSiteInstance {
   storage: DBInterface
@@ -48,11 +52,26 @@ export class Uau implements UauSiteInstance {
       .slice(this.settings.apiPrefix.length)
       .toLowerCase()
     if (path.length === 0) {
-      return statusedJsonResponse<UauSitePublicSettings>(200, {
-        apiPrefix: this.settings.apiPrefix,
-        maxDefinedPathLevel: this.settings.maxDefinedPathLevel,
-        maxGuestValidity: this.settings.maxGuestValidity,
-      })
+      switch (request.method) {
+        case 'GET': {
+          return statusedJsonResponse<UauSitePublicSettings>(200, {
+            apiPrefix: this.settings.apiPrefix,
+            maxDefinedPathLevel: this.settings.maxDefinedPathLevel,
+            maxGuestValidity: this.settings.maxGuestValidity,
+            lockdownMode: this.settings.lockdownMode,
+          })
+        }
+        case 'PUT': {
+          return await this.createLink(
+            `/${nanoid()}`.toLowerCase(),
+            await request.json(),
+            true
+          )
+        }
+        default: {
+          return statusedResponse(405)
+        }
+      }
     }
     switch (request.method) {
       // Update CORS when adding to this
@@ -69,72 +88,32 @@ export class Uau implements UauSiteInstance {
         })
       }
       case 'PUT': {
-        if (path.split('/').length > this.settings.maxDefinedPathLevel + 1) {
-          return statusedJsonResponse<APIPostResponse>(400, {
-            ok: false,
-            reason: `Max defined path level is ${
-              this.settings.maxDefinedPathLevel
-            }, while your path level is ${path.split('/').length - 1}`,
-          })
-        }
-        const rawPayload = await request.json()
-        const override = rawPayload.override === true
-        if (override && !this.checkIdentity(request)) {
-          return statusedJsonResponse<APIPostResponse>(403, {
-            ok: false,
-            reason: 'Permission denied for override.',
-          })
-        }
-        const ifConflict = await this.checkConflict(path, override)
-        if (ifConflict) {
-          return ifConflict
-        }
-
-        let [ok, item] = validateUauItem(rawPayload)
-        if (!ok) {
-          return statusedJsonResponse<APIPostResponse>(400, {
-            ok: false,
-            reason: `Invalid item: ${item}`,
-          })
-        }
-
-        item = <UauItem>item
-        // Authorization
-        if (
-          this.settings.maxGuestValidity !== 0 &&
-          (item.validity == undefined ||
-            item.validity > this.settings.maxGuestValidity)
-        ) {
-          if (!this.checkIdentity(request)) {
-            return statusedJsonResponse<APIPostResponse>(403, {
-              ok: false,
-              reason: 'Invalid request for guests',
-            })
-          }
-        }
-
-        await this.storage.write(path, item)
-        return statusedJsonResponse<APIPostResponse>(200, {
-          ok: true,
-        })
+        return await this.createLink(
+          path,
+          await request.json(),
+          this.checkIdentity(request)
+        )
       }
       case 'DELETE': {
         const item = await this.storage.read(path)
         if (item === null) {
           return statusedJsonResponse<APIPostResponse>(404, {
             ok: false,
+            path,
             reason: 'The entry to delete does not exist',
           })
         }
         if (!this.checkIdentity(request)) {
           return statusedJsonResponse<APIPostResponse>(403, {
             ok: false,
+            path,
             reason: 'Invalid request for guests',
           })
         }
         await this.storage.delete(path)
         return statusedJsonResponse<APIPostResponse>(200, {
           ok: true,
+          path,
         })
       }
     }
@@ -153,12 +132,14 @@ export class Uau implements UauSiteInstance {
       if (path === pathSlice && !override)
         return statusedJsonResponse<APIPostResponse>(400, {
           ok: false,
+          path,
           reason: `Item for this path already exists`,
         })
       if (result.type === 'payload') continue
       if (result.inheritPath)
         return statusedJsonResponse<APIPostResponse>(400, {
           ok: false,
+          path,
           reason: `Conflict with a inherited path on ${pathSlice}`,
         })
     }
@@ -203,6 +184,7 @@ export class Uau implements UauSiteInstance {
       return withCorsHeaders(
         statusedJsonResponse<APIPostResponse>(405, {
           ok: false,
+          path,
           reason: 'Invalid path for API',
         }),
         acaoResult
@@ -234,6 +216,65 @@ export class Uau implements UauSiteInstance {
       }),
       acaoResult
     )
+  }
+
+  async createLink(
+    path: string,
+    rawPayload: Record<string, any>,
+    identityOk: boolean
+  ) {
+    if (path.split('/').length > this.settings.maxDefinedPathLevel + 1) {
+      return statusedJsonResponse<APIPostResponse>(400, {
+        ok: false,
+        path,
+        reason: `Max defined path level is ${
+          this.settings.maxDefinedPathLevel
+        }, while your path level is ${path.split('/').length - 1}`,
+      })
+    }
+    const override = rawPayload.override === true
+    if ((override || this.settings.lockdownMode) && !identityOk) {
+      return statusedJsonResponse<APIPostResponse>(403, {
+        ok: false,
+        path,
+        reason: 'Permission denied.',
+      })
+    }
+    const ifConflict = await this.checkConflict(path, override)
+    if (ifConflict) {
+      return ifConflict
+    }
+
+    let [ok, item] = validateUauItem(rawPayload)
+    if (!ok) {
+      return statusedJsonResponse<APIPostResponse>(400, {
+        ok: false,
+        path,
+        reason: `Invalid item: ${item}`,
+      })
+    }
+
+    item = <UauItem>item
+    // Authorization
+    if (
+      this.settings.maxGuestValidity !== 0 &&
+      (item.validity == undefined ||
+        item.validity > this.settings.maxGuestValidity)
+    ) {
+      if (!identityOk) {
+        return statusedJsonResponse<APIPostResponse>(403, {
+          ok: false,
+          path,
+          reason: 'Invalid request for guests',
+        })
+      }
+    }
+
+    await this.storage.write(path, item)
+    return statusedJsonResponse<APIPostResponse>(200, {
+      ok: true,
+      path,
+    })
   }
 
   buildResponse(request: Request, result: UauItem, selector: string): Response {

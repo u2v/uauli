@@ -7,5 +7,6 @@ export interface APIGetResponse {
 
 export interface APIPostResponse {
   ok: boolean
+  path: string
   reason?: string
 }
