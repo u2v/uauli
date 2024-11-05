@@ -54,11 +54,17 @@ export class Uau implements UauSiteInstance {
     if (path.length === 0) {
       switch (request.method) {
         case 'GET': {
-          return statusedJsonResponse<UauSitePublicSettings>(200, {
+          return statusedJsonResponse<
+            Omit<UauSitePublicSettings, 'maxDefinedPathLevel'>
+          >(200, {
             apiPrefix: this.settings.apiPrefix,
-            maxDefinedPathLevel: this.settings.maxDefinedPathLevel,
             maxGuestValidity: this.settings.maxGuestValidity,
             lockdownMode: this.settings.lockdownMode,
+            ...(this.settings.lockdownMode
+              ? {}
+              : {
+                  maxDefinedPathLevel: this.settings.maxDefinedPathLevel,
+                }),
           })
         }
         case 'PUT': {
