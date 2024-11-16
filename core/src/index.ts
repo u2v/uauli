@@ -158,7 +158,10 @@ export class Uau implements UauSiteInstance {
     )
   }
 
-  async handleRequest(request: Request): Promise<Response> {
+  async handleRequest(
+    request: Request,
+    handlePromise: (x: Promise<unknown>) => void = (x) => Promise.resolve(x)
+  ): Promise<Response> {
     const acaoResult = validateCors(
       request.headers.get('Origin'),
       this.settings.allowCors
@@ -183,7 +186,7 @@ export class Uau implements UauSiteInstance {
     }
 
     if (this.settings.umamiConfig) {
-      logRequest(request, this.settings.umamiConfig)
+      handlePromise(logRequest(request, this.settings.umamiConfig))
     }
 
     if (request.method !== 'GET') {

@@ -34,6 +34,5 @@ export class WorkersKVDB implements DBInterface {
 
 export interface UauWorkersConfig {
   uauSettings: UauSiteSettings
-  storage: DBInterface
   statics: { [key: string]: string }
 }

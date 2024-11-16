@@ -1,17 +1,28 @@
 import { Uau } from '@uau/core/src'
 
 import uauConfig from './config'
+import { WorkersKVDB } from './interface'
 
-const uauInstance = new Uau(
-  uauConfig.uauSettings,
-  uauConfig.storage,
-  uauConfig.statics
-)
+export default {
+  async fetch(
+    request: Request,
+    env: {
+      KV: KVNamespace
+    },
+    ctx: {
+      waitUntil: (x: Promise<unknown>) => void
+    }
+  ) {
+    const uauInstance = new Uau(
+      uauConfig.uauSettings,
+      new WorkersKVDB(env.KV),
+      uauConfig.statics
+    )
 
-addEventListener('fetch', (event) => {
-  try {
-    event.respondWith(uauInstance.handleRequest(event.request))
-  } catch (e) {
-    console.log('ERRR', String(e), event.request)
-  }
-})
+    try {
+      return uauInstance.handleRequest(request, ctx.waitUntil.bind(ctx))
+    } catch (e) {
+      console.log('ERRR', String(e), request)
+    }
+  },
+}

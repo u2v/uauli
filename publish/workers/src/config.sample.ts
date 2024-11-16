@@ -13,7 +13,6 @@ const _: UauWorkersConfig = {
       websiteId: '28addf68-9a92-487b-9fd3-7d5592c9e404',
     },
   },
-  storage: new WorkersKVDB(KV),
   statics: {
     '': 'https://uauli.pages.dev/',
   },
