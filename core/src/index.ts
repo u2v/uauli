@@ -175,6 +175,10 @@ export class Uau implements UauSiteInstance {
     const source = new URL(request.url)
     const path = source.pathname.replace(/\/$/, '').replace(/^\/~/, '/')
 
+    if (this.settings.umamiConfig) {
+      handlePromise(logRequest(request, this.settings.umamiConfig))
+    }
+
     if (this.statics[path]) {
       const resp = await fetch(this.statics[path])
       return resp.clone()
@@ -183,10 +187,6 @@ export class Uau implements UauSiteInstance {
     // Settings
     if (path.startsWith(this.settings.apiPrefix)) {
       return withCorsHeaders(await this.handleApiRequest(request), acaoResult)
-    }
-
-    if (this.settings.umamiConfig) {
-      handlePromise(logRequest(request, this.settings.umamiConfig))
     }
 
     if (request.method !== 'GET') {
@@ -336,10 +336,12 @@ async function logRequest(req: Request, config: UmamiConfig): Promise<void> {
       payload: {
         website: config.websiteId,
         url: url.pathname + url.search,
-        referrer: req.headers.get('Referer'),
         hostname: url.hostname,
         language: req.headers.get('Accept-Language'),
         screen: '1920x1080',
+        ...(req.headers.get('Referer')
+          ? { referrer: req.headers.get('Referer') }
+          : {}),
       },
       type: 'event',
     }),
