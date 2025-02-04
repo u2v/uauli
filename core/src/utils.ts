@@ -110,3 +110,10 @@ export function statusedJsonResponse<T>(status: number, payload: T): Response {
     'Content-Type': 'application/json',
   })
 }
+
+export function checkMatchPrefix(path: string, prefixes: string[]): boolean {
+  for (const i of prefixes) {
+    if (path.startsWith(i)) return true
+  }
+  return false
+}

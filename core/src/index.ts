@@ -9,6 +9,7 @@ import type {
   UmamiConfig,
 } from './interface'
 import {
+  checkMatchPrefix,
   pathIterator,
   shimContentType,
   statusedJsonResponse,
@@ -20,6 +21,7 @@ import {
 } from './utils'
 
 const NANOID_DICT = '6789BCDFGHJKLMNPQRTW'
+const PRESERVED_PATH_PREFIXES = ['/.well-known', '/robots.txt']
 const nanoid = customAlphabet(NANOID_DICT, 5)
 
 export class Uau implements UauSiteInstance {
@@ -250,6 +252,13 @@ export class Uau implements UauSiteInstance {
         ok: false,
         path,
         reason: 'Permission denied.',
+      })
+    }
+    if (!override && checkMatchPrefix(path, PRESERVED_PATH_PREFIXES)) {
+      return statusedJsonResponse<APIPostResponse>(400, {
+        ok: false,
+        path,
+        reason: 'Path prefixes are reserved. Set `override` to proceed.',
       })
     }
     const ifConflict = await this.checkConflict(path, override)
