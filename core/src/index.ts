@@ -51,6 +51,17 @@ export class Uau implements UauSiteInstance {
       .replace(/\/$/, '')
       .slice(this.settings.apiPrefix.length)
       .toLowerCase()
+    let body
+    try {
+      body = await request.json()
+    } catch (e) {
+      return statusedJsonResponse<APIPostResponse>(400, {
+        ok: false,
+        path,
+        reason: `Bad JSON body: ${e}`,
+      })
+    }
+
     if (path.length === 0) {
       switch (request.method) {
         case 'GET': {
@@ -68,11 +79,7 @@ export class Uau implements UauSiteInstance {
           })
         }
         case 'PUT': {
-          return await this.createLink(
-            `/${nanoid()}`.toLowerCase(),
-            await request.json(),
-            true
-          )
+          return await this.createLink(`/${nanoid()}`.toLowerCase(), body, true)
         }
         default: {
           return statusedResponse(405)
@@ -94,11 +101,7 @@ export class Uau implements UauSiteInstance {
         })
       }
       case 'PUT': {
-        return await this.createLink(
-          path,
-          await request.json(),
-          this.checkIdentity(request)
-        )
+        return await this.createLink(path, body, this.checkIdentity(request))
       }
       case 'DELETE': {
         const item = await this.storage.read(path)
