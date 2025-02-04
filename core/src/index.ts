@@ -305,6 +305,7 @@ export class Uau implements UauSiteInstance {
         return new Response(String(finalUrl), {
           status: 302,
           headers: {
+            'X-Robots-Tag': 'none',
             Location: String(finalUrl),
           },
         })
