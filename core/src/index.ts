@@ -54,15 +54,6 @@ export class Uau implements UauSiteInstance {
       .slice(this.settings.apiPrefix.length)
       .toLowerCase()
     let body
-    try {
-      body = await request.json()
-    } catch (e) {
-      return statusedJsonResponse<APIPostResponse>(400, {
-        ok: false,
-        path,
-        reason: `Bad JSON body: ${e}`,
-      })
-    }
 
     if (path.length === 0) {
       switch (request.method) {
@@ -81,6 +72,15 @@ export class Uau implements UauSiteInstance {
           })
         }
         case 'PUT': {
+          try {
+            body = await request.json()
+          } catch (e) {
+            return statusedJsonResponse<APIPostResponse>(400, {
+              ok: false,
+              path,
+              reason: `Bad JSON body: ${e}`,
+            })
+          }
           return await this.createLink(`/${nanoid()}`.toLowerCase(), body, true)
         }
         default: {
@@ -88,6 +88,17 @@ export class Uau implements UauSiteInstance {
         }
       }
     }
+
+    try {
+      body = await request.json()
+    } catch (e) {
+      return statusedJsonResponse<APIPostResponse>(400, {
+        ok: false,
+        path,
+        reason: `Bad JSON body: ${e}`,
+      })
+    }
+
     switch (request.method) {
       // Update CORS when adding to this
       case 'GET': {
