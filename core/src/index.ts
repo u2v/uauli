@@ -64,6 +64,11 @@ export class Uau implements UauSiteInstance {
             apiPrefix: this.settings.apiPrefix,
             maxGuestValidity: this.settings.maxGuestValidity,
             lockdownMode: this.settings.lockdownMode,
+            ...(this.settings.notice
+              ? {
+                  notice: this.settings.notice,
+                }
+              : {}),
             ...(this.settings.lockdownMode
               ? {}
               : {

@@ -206,6 +206,11 @@
             .then((x) => {
                 notice.innerHTML = `<p>Short link valid in ${x.maxGuestValidity} seconds</p>` + "<p>Upper/lower case doesn't matter</p>" +
                     (x.maxDefinedPathLevel ? `<p>Level can be at most ${x.maxDefinedPathLevel}</p>` : '')
+                if (x.notice) {
+                    const siteNotice = document.querySelector('#sitenotice')
+                    siteNotice.style.display = "block"
+                    siteNotice.innerText = x.notice
+                }
             })
             .catch((e) => {
                 console.warn('Cannot get the settings:', e)

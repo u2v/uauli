@@ -37,6 +37,7 @@ export interface UauSitePublicSettings {
   maxDefinedPathLevel: number
   maxGuestValidity: number
   lockdownMode: boolean
+  notice?: string
 }
 
 export interface UauSiteSettings extends UauSitePublicSettings {
