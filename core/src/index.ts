@@ -55,6 +55,18 @@ export class Uau implements UauSiteInstance {
       .toLowerCase()
     let body
 
+    if (request.method === 'PUT') {
+      try {
+        body = await request.json()
+      } catch (e) {
+        return statusedJsonResponse<APIPostResponse>(400, {
+          ok: false,
+          path,
+          reason: `Bad JSON body: ${e}`,
+        })
+      }
+    }
+
     if (path.length === 0) {
       switch (request.method) {
         case 'GET': {
@@ -77,31 +89,12 @@ export class Uau implements UauSiteInstance {
           })
         }
         case 'PUT': {
-          try {
-            body = await request.json()
-          } catch (e) {
-            return statusedJsonResponse<APIPostResponse>(400, {
-              ok: false,
-              path,
-              reason: `Bad JSON body: ${e}`,
-            })
-          }
           return await this.createLink(`/${nanoid()}`.toLowerCase(), body, true)
         }
         default: {
           return statusedResponse(405)
         }
       }
-    }
-
-    try {
-      body = await request.json()
-    } catch (e) {
-      return statusedJsonResponse<APIPostResponse>(400, {
-        ok: false,
-        path,
-        reason: `Bad JSON body: ${e}`,
-      })
     }
 
     switch (request.method) {
