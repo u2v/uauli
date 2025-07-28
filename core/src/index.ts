@@ -106,7 +106,7 @@ export class Uau implements UauSiteInstance {
             found: false,
           })
         }
-        return statusedJsonResponse<APIGetResponse>(404, {
+        return statusedJsonResponse<APIGetResponse>(200, {
           found: true,
           item,
         })
